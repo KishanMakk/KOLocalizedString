@@ -15,7 +15,11 @@ Helper for change language your app, without rebooting  app.
 textLabel.text = KOLocalized(key:"key")
 //Recommended usage in updated functions viewDidAppear
 ```
-5. Example Usage change Localized
+5. add Language key used to your app in Array  "localeArray"
+```swift
+private let localeArray:Array = ["ru","en","de","it"]
+```
+6. Example Usage change Localized
 ```swift
 KOLocalizedClass.instanc.changeLocalized(key: "en")
 ```
