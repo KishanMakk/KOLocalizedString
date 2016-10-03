@@ -65,7 +65,7 @@ class KOLocalizedClass: NSObject {
                 var systemLocale : String = NSLocale.preferredLanguages[0]
 
                 if systemLocale.characters.count > 2 {
-                    let index = systemLocale.range(of: "_")?.lowerBound
+                    let index = systemLocale.range(of: "-")?.lowerBound
                     systemLocale = systemLocale.substring(to: index!)
                 }
 
