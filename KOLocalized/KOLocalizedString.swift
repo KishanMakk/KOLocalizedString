@@ -62,19 +62,15 @@ class KOLocalizedClass: NSObject {
     private func checkFirstInit(){
         if UserDefaults.standard.object(forKey: keyLocale) == nil{
             var langValue:String {
-                var systemLocale : String = NSLocale.preferredLanguages[0]
-
-                if systemLocale.characters.count > 2 {
-                    let index = systemLocale.range(of: "-")?.lowerBound
-                    systemLocale = systemLocale.substring(to: index!)
-                }
-
+                var langValue:String {
+                let locale : String = self.systemLocale()
+                
                 for localeString in localeArray{
-                    if localeString == systemLocale{
-                        systemLocale = localeString
+                    if localeString == locale{
+                        return localeString != "" ? locale : "en"
                     }
                 }
-                return systemLocale == "" ? systemLocale: "en"
+                return locale != "" ? locale : "en"
             }
             UserDefaults.standard.set("\(langValue)_\(endNameFile)", forKey: keyLocale)
             nameFile = "\(langValue)_\(endNameFile)"
@@ -89,5 +85,20 @@ class KOLocalizedClass: NSObject {
         if let path =  Bundle.main.path(forResource: nameFile, ofType: typeLocalizable) {
             localeDictionary = NSDictionary(contentsOfFile: path)!
         }
+    }
+	    //Change locale from default value
+    func defaultLocale(){
+        self.changeLocalized(key: systemLocale())
+    }
+    
+    //locale device
+    private func systemLocale()-> String {
+        var systemLocale : String = NSLocale.preferredLanguages[0]
+        
+        if systemLocale.characters.count > 2 {
+            let index = systemLocale.range(of: "-")?.lowerBound
+            systemLocale = systemLocale.substring(to: index!)
+        }
+        return systemLocale
     }
 }
