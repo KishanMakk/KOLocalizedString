@@ -16,8 +16,8 @@ class ViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        textLabel.text = KOLocalized(key:"kLanguage")
-        button.titleLabel?.text = KOLocalized(key:"kChangeLanguage")
+        textLabel.text = KOLocalized("kLanguage")
+        button.titleLabel?.text = KOLocalized("kChangeLanguage")
     }
 }
 
@@ -28,11 +28,11 @@ class langViewController: UIViewController {
     }
 
     @IBAction func en(_ sender: AnyObject) {
-        KOLocalizedClass.instanc.changeLocalized(key: "en")
+        KOLocalizedClass.instance.changeLocalizedWithKey("en")
         self.navigationController!.popViewController(animated: true)
     }
     @IBAction func ru(_ sender: AnyObject) {
-        KOLocalizedClass.instanc.changeLocalized(key: "ru")
+        KOLocalizedClass.instance.changeLocalizedWithKey("ru")
         self.navigationController!.popViewController(animated: true)
     }
 }
