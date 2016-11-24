@@ -5,72 +5,104 @@
 //  Copyright © 2016 com.khymych. All rights reserved.
 //
 
-//Example usage return value for key
-//Recomend usage in update func viewDidAppear
-/*
- textLabel.text = KOLocalized(key:"key")
- */
-
-//Example Usage change Localized
-/*
- KOLocalizedClass.instanc.changeLocalized(key: "en")
- */
-
-//Created in project file "key_Localizable.plist"  key - your language key wth 2 characters
-/*
- <key>stringKey</key>
-	<string>stringValue</string>
- 
- */
-
 import Foundation
+import UIKit
 
-func KOLocalized(key:String)->String{
-    return KOLocalizedClass.instanc.valueWith(key: key)
+/// Returns a localized string
+///
+/// - Parameter key: key for value
+/// - Returns: return value or key if not found key in dictionary
+public func KOLocalized(_ key:String)->String{
+    return KOLocalizedClass.instance.valueWith(key: key)
 }
 
-class KOLocalizedClass: NSObject {
-    static let instanc = KOLocalizedClass()
-
-    private let localeArray : Array  = ["ru","en"]
-    private let keyLocale   : String = "kLocale"
-    private let endNameFile : String = "Localizable"
-
-    private var localeDictionary : NSDictionary!
-    private let typeLocalizable  : String = "plist"
-    private var nameFile         : String!
-
-    override init() {
-        super.init()
-        checkFirstInit()
+/// Base settings for KOLocalizedClass class
+///
+/// - Parameters:
+///   - nameFile: name file, default "Localizable". full name file key_Localizable -- prefix locale "key_" and name file "Localizable"
+///   - appLocaleList: array string value keys language - only string two symbols lenghts
+///   - defaultLocale: default language app, default "en"
+public func KOLocalizedSettings(nameFile:String?, appLocaleList:Array<String>, defaultLocale: String, localeDevice:Bool){
+    KOLocalizedClass.instance.initSettings(nameFile: nameFile, array: appLocaleList, defaultLocale: defaultLocale)
+    if localeDevice {
+        KOLocalizedClass.instance.defaultLocale()
     }
-    //MARK: Public Methods
-    public func changeLocalized(key:String){
+}
+
+///Example usage return value for key
+///Recomend usage in update func viewDidAppear
+///textLabel.text = KOLocalized(key:"key")
+///
+///Example Usage change Localized
+///KOLocalizedClass.instanc.changeLocalized(key: "en")
+/// Created in project file "key_Localizable.plist"  key - your language key wth 2 characters
+open class KOLocalizedClass: NSObject {
+    static let instance = KOLocalizedClass()
+
+    private var localeArray         : Array  = ["en"]
+    private var defLocaleValue      : String  = "en"
+
+    private let keyLocale           : String = "kLocale"
+    private var endNameFile         : String = "Localizable"
+
+    private var localeDictionary    : NSDictionary!
+    private let typeLocalizable     : String = "plist"
+    private var nameFile            : String!{
+        didSet{
+            updateDictionary()
+        }
+    } 
+    /// Public function Change localized
+    ///
+    /// - Parameter key: key localized for  language change in app
+    public func changeLocalizedWithKey(_ key:String){
         UserDefaults.standard.set("\(key)_\(endNameFile)", forKey: keyLocale)
         nameFile = "\(key)_\(endNameFile)"
-        updateDictionary()
     }
-
-    //MARK: Internal Methods
-    internal func valueWith(key:String) -> String {
-        var value:String
-        value = localeDictionary.object(forKey: key) as? String ?? key
-        return value
+    /// init base settings
+    ///
+    /// - Parameters:
+    ///   - nameFile: name file, default "Localizable". full name file en_Localizable -- prefix locale "en_" and name file "Localizable"
+    ///   - array: array string value keys language - only string two symbols lenghts
+    ///   - defaultLocale: default language app
+    func initSettings(nameFile:String?, array:Array<String>, defaultLocale: String){
+        endNameFile = nameFile ?? endNameFile
+        guard localeArray == array else {
+            for key:String in array{
+                guard key.characters.count == 2 else {
+                    return
+                }
+                defLocaleValue =  defaultLocale == key ? defaultLocale : defLocaleValue
+            }
+            localeArray = array
+            checkFirstInit()
+            return
+        }
+        checkFirstInit()
     }
-
-    //MARK: Privat Methods
+    /// Get value by key. if key not found return key as value
+    ///
+    /// - Parameter key: key for search value in dictionary
+    /// - Returns: return value or key if not found key in dictionary
+    func valueWith(key:String) -> String {
+        if (localeDictionary != nil) {
+            return localeDictionary.object(forKey: key) as? String ?? key
+        }else{
+            return key
+        }
+    }
+    /// Main function
     private func checkFirstInit(){
         if UserDefaults.standard.object(forKey: keyLocale) == nil{
             var langValue:String {
-                var langValue:String {
                 let locale : String = self.systemLocale()
-                
+
                 for localeString in localeArray{
                     if localeString == locale{
-                        return localeString != "" ? locale : "en"
+                        return localeString != "" ? locale : defLocaleValue
                     }
                 }
-                return locale != "" ? locale : "en"
+                return defLocaleValue
             }
             UserDefaults.standard.set("\(langValue)_\(endNameFile)", forKey: keyLocale)
             nameFile = "\(langValue)_\(endNameFile)"
@@ -80,25 +112,42 @@ class KOLocalizedClass: NSObject {
         updateDictionary()
     }
 
-    //Update Dictionary
+    /// Update Dictionary
     private func updateDictionary(){
         if let path =  Bundle.main.path(forResource: nameFile, ofType: typeLocalizable) {
             localeDictionary = NSDictionary(contentsOfFile: path)!
         }
     }
-	    //Change locale from default value
+    /// Change locale from default value
     func defaultLocale(){
-        self.changeLocalized(key: systemLocale())
+        for localeString in localeArray{
+            if localeString == systemLocale(){
+                self.changeLocalizedWithKey(localeString)
+                return
+            }
+        }
+        self.changeLocalizedWithKey(defLocaleValue)
     }
-    
-    //locale device
+
+    /// locale device
     private func systemLocale()-> String {
         var systemLocale : String = NSLocale.preferredLanguages[0]
-        
+
         if systemLocale.characters.count > 2 {
             let index = systemLocale.range(of: "-")?.lowerBound
             systemLocale = systemLocale.substring(to: index!)
         }
         return systemLocale
+    }
+}
+
+extension UILabel {
+    @IBInspectable  var localizedText: String {
+        set (key) {
+            text = KOLocalized(key)
+        }
+        get {
+            return text!
+        }
     }
 }
