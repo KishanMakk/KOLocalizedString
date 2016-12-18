@@ -24,5 +24,11 @@ textLabel.text = KOLocalized("key")
 ```
 5. Example Usage change Localized
 ```swift
-KOLocalizedClass.instance.changeLocalizedWithKey("en")
+KOLocalizedChangeLocale("en")
+```
+## Optional
+
+Current language key
+```swift
+public func KOLocalizedCurrentLocale()->String
 ```
