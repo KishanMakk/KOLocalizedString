@@ -32,6 +32,12 @@ public func KOLocalizedSettings(nameFile:String?, appLocaleList:Array<String>, d
 public func KOLocalizedCurrentLocale()->String{
     return KOLocalizedClass.instance.currentLocale()
 }
+/// Current locale
+///
+/// - Returns: return current locale
+public func KOLocalizedCurrentLocaleForWeb()->String{
+    return KOLocalizedClass.instance.currentLocaleForWeb()
+}
 /// Change Language
 ///
 /// - Parameter key: key language
@@ -48,13 +54,13 @@ public func KOLocalizedChangeLocale(key:String){
 /// Created in project file "key_Localizable.plist"  key - your language key wth 2 characters
 open class KOLocalizedClass: NSObject {
     static fileprivate let instance = KOLocalizedClass()
-
+    
     private var localeArray         : Array  = ["en"]
     private var defLocaleValue      : String  = "en"
-
-    private let keyLocale           : String = "kLocale"
+    
+    private let keyLocale           : String = "kLocaleDic"
     private var endNameFile         : String = "Localizable"
-
+    
     private var localeDictionary    : NSDictionary!
     private let typeLocalizable     : String = "plist"
     private var nameFile            : String!{
@@ -66,7 +72,7 @@ open class KOLocalizedClass: NSObject {
     ///
     /// - Parameter key: key localized for  language change in app
     fileprivate func changeLocalizedWithKey(_ key:String){
-        UserDefaults.standard.set("\(key)_\(endNameFile)", forKey: keyLocale)
+        UserDefaults.standard.set(["languageKey": key, "nameFile":"\(key)_\(endNameFile)"], forKey: keyLocale)
         nameFile = "\(key)_\(endNameFile)"
         for localeString in localeArray{
             if localeString == key{
@@ -112,7 +118,7 @@ open class KOLocalizedClass: NSObject {
         if UserDefaults.standard.object(forKey: keyLocale) == nil{
             var langValue:String {
                 let locale : String = self.systemLocale()
-
+                
                 for localeString in localeArray{
                     if localeString == locale{
                         return localeString != "" ? locale : defLocaleValue
@@ -120,14 +126,17 @@ open class KOLocalizedClass: NSObject {
                 }
                 return defLocaleValue
             }
-            UserDefaults.standard.set("\(langValue)_\(endNameFile)", forKey: keyLocale)
+            UserDefaults.standard.set(["languageKey": langValue, "nameFile":"\(langValue)_\(endNameFile)"], forKey: keyLocale)
             nameFile = "\(langValue)_\(endNameFile)"
+            defLocaleValue = langValue
         }else{
-            nameFile = UserDefaults.standard.object(forKey: keyLocale) as! String
+            let dic = UserDefaults.standard.object(forKey: keyLocale) as! Dictionary<String, Any>
+            nameFile = dic["nameFile"] as! String
+            defLocaleValue = dic["languageKey"] as! String
         }
         updateDictionary()
     }
-
+    
     /// Update Dictionary
     private func updateDictionary(){
         if let path =  Bundle.main.path(forResource: nameFile, ofType: typeLocalizable) {
@@ -145,25 +154,30 @@ open class KOLocalizedClass: NSObject {
         }
         self.changeLocalizedWithKey(defLocaleValue)
     }
-
     /// Current locale
     ///
     /// - Returns: return key current language
     fileprivate func currentLocale() -> String {
         return defLocaleValue
     }
-
+    /// Current locale for web
+    ///
+    /// - Returns: return key current language
+    fileprivate func currentLocaleForWeb() -> String {
+        return defLocaleValue == "uk" ?  "ua" : defLocaleValue
+    }
+    
     /// locale device
     private func systemLocale()-> String {
         var systemLocale : String = NSLocale.preferredLanguages[0]
-
+        
         if systemLocale.characters.count > 2 {
             let index = systemLocale.range(of: "-")?.lowerBound
             systemLocale = systemLocale.substring(to: index!)
         }
         return systemLocale
     }
-
+    
 }
 
 extension UILabel {
